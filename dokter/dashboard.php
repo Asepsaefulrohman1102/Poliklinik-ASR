@@ -3,11 +3,29 @@ session_start(); // Pastikan ini adalah baris pertama sebelum output apapun
 include_once('koneksi.php');
 
 // Cek apakah user sudah login dan role-nya adalah Dokter
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
+if (!isset($_SESSION['loggedin']) && isset($_COOKIE['name'])) {
+    $nama_dokter_cookie = mysqli_real_escape_string($conn, $_COOKIE['name']);
+    
+    // Query untuk memeriksa apakah nama dokter dari cookie ada di tabel dokter
+    $sql = "SELECT * FROM dokter WHERE nama_dokter='$nama_dokter_cookie'";
+    $result = mysqli_query($conn, $sql);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        // Jika ada, set session dan izinkan akses
+        $_SESSION['loggedin'] = true;
+        $_SESSION['name'] = $nama_dokter_cookie;
+    } else {
+        // Jika tidak ada, arahkan kembali ke halaman login atau halaman utama
+        header('Location: ../');
+        exit();
+    }
+} elseif (!isset($_SESSION['loggedin']) ) {
+    // Jika session tidak ada atau role bukan Dokter, arahkan ke halaman utama
     header('Location: ../');
     exit();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -70,13 +88,13 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=riwayat/riwayat_pasien">
+                <a class="nav-link" href="riwayat/riwayat_pasien.php">
                     <i class="fas fa-history menu-icon"></i>
                     <span class="menu-title">Riwayat Pasien</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=profile/profile_dokter">
+                <a class="nav-link" href="?page=profile/profile">
                     <i class="fas fa-user menu-icon"></i>
                     <span class="menu-title">Profile</span>
                 </a>
@@ -96,11 +114,22 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
                 // Sanitize the page parameter to prevent directory traversal attacks
                 $page = $_GET['page'];
                 $page = str_replace("../", "", $page); // Extra security measure
+                $page = str_replace("dashboard", "dashboard_welcome", $page); // Special handling for dashboard
                 $nama_dokter = $_COOKIE['name']; // Ubah 'name' sesuai dengan nama yang digunakan dalam cookie
                 // Get the full path
                 $pagePath = __DIR__ . '/' . $page . '.php';
 
-                if (file_exists($pagePath)) {
+                if ($page == 'dashboard_welcome') {
+                    echo "<div class='col-12 grid-margin stretch-card'>
+                    <div class='card'>
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='card-body'>
+                            
+                            <h1>Selamat datang, Dokter $_COOKIE[name] </h1>
+                                
+                    ";
+                } elseif (file_exists($pagePath)) {
                     include($pagePath);
                 } else {
                     echo "Page not found.";
@@ -118,6 +147,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
             }
         ?>
     </div>
+</div>
+
+
 
       <!-- <footer class="footer">
         <div class="d-sm-flex justify-content-center justify-content-sm-between">
@@ -128,7 +160,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
           <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Distributed by <a href="https://www.themewagon.com/" target="_blank">Themewagon</a></span> 
         </div>
       </footer> -->
-    </div>
+    <!-- </div> -->
   </div>
 
   <script src="../vendors/js/vendor.bundle.base.js"></script>

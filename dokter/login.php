@@ -1,83 +1,4 @@
-<?php
-session_start();
-include 'koneksi.php';
 
-if (isset($_SESSION['username'])) {
-    $_SESSION['loggedin'] = true;
-    // Pastikan untuk mengambil hasil dari kueri database terlebih dahulu sebelum mengakses kolomnya
-    $sql = "SELECT role, name FROM akun WHERE username='{$_SESSION['username']}'";
-    $result = mysqli_query($conn, $sql);
-    if ($result && $result->num_rows > 0) {
-        $row = mysqli_fetch_assoc($result);
-        $_SESSION['role'] = $row['role']; // Simpan peran dalam sesi
-        $_SESSION['name'] = $row['name']; // Simpan nama dalam sesi
-        // Simpan data pengguna dalam cookie atau local storage jika diperlukan
-        setcookie('username', $_SESSION['username'], time() + (86400 * 30), "/"); // Cookie berlaku selama 30 hari
-        setcookie('role', $_SESSION['role'], time() + (86400 * 30), "/");
-        setcookie('name', $_SESSION['name'], time() + (86400 * 30), "/");
-        // Jika menggunakan local storage:
-        // echo "<script>localStorage.setItem('username', '{$_SESSION['username']}');</script>";
-        // echo "<script>localStorage.setItem('role', '{$_SESSION['role']}');</script>";
-        // echo "<script>localStorage.setItem('name', '{$_SESSION['name']}');</script>";
-    }
-    header("Location: dashboard.php");
-    exit();
-}
-
-if (isset($_POST['submit'])) {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = $_POST['password'];
-
-    $sql = "SELECT * FROM akun WHERE username='$username'";
-    $result = mysqli_query($conn, $sql);
-
-    if ($result->num_rows > 0) {
-        $row = mysqli_fetch_assoc($result);
-        $stored_password = $row['password']; // Password yang disimpan di database
-        if (password_verify($password, $stored_password)) { // Memeriksa password dengan password_verify
-            if ($row['role'] === 'Dokter') {
-                // Hanya jika pengguna adalah Dokter, atur session
-                $_SESSION['username'] = $row['username'];
-                $_SESSION['loggedin'] = true; // Set status login ke true
-                $_SESSION['role'] = $row['role']; // Store the role in the session
-                $_SESSION['name'] = $row['name']; // Store the name in the session
-
-                // Simpan data pengguna dalam cookie atau local storage jika diperlukan
-                setcookie('username', $_SESSION['username'], time() + (86400 * 30), "/"); // Cookie berlaku selama 30 hari
-                setcookie('role', $_SESSION['role'], time() + (86400 * 30), "/");
-                setcookie('name', $_SESSION['name'], time() + (86400 * 30), "/");
-                // Jika menggunakan local storage:
-                // echo "<script>localStorage.setItem('username', '{$_SESSION['username']}');</script>";
-                // echo "<script>localStorage.setItem('role', '{$_SESSION['role']}');</script>";
-                // echo "<script>localStorage.setItem('name', '{$_SESSION['name']}');</script>";
-
-                // Alihkan ke dashboard
-                header("Location: dashboard.php");
-                exit();
-            } else {
-                // Hapus session jika login gagal karena bukan Dokter
-                session_unset();
-                session_destroy();
-
-                // Tampilkan SweetAlert menggunakan JavaScript
-                echo "<script>
-                      window.onload = function() {
-                          Swal.fire({
-                              icon: 'error',
-                              title: 'Oops...',
-                              text: 'Maaf, Anda bukan Dokter.'
-                          });
-                      };
-                    </script>";
-            }
-        } else {
-            $error_message = "Username atau password Anda salah. Silakan coba lagi!";
-        }
-    } else {
-        $error_message = "Username atau password Anda salah. Silakan coba lagi!";
-    }
-}
-?>
 
 
 <!DOCTYPE html>
@@ -97,7 +18,7 @@ if (isset($_POST['submit'])) {
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
 
   <!-- Vendor CSS Files -->
   <link href="../assets/assets_login/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -142,6 +63,82 @@ if (isset($_POST['submit'])) {
                             <?php echo $error_message; ?>
                         </div>
                     <?php endif; ?>
+
+                    <?php
+session_start();
+include 'koneksi.php';
+
+if (isset($_SESSION['username'])) {
+    $_SESSION['loggedin'] = true;
+    // Pastikan untuk mengambil hasil dari kueri database terlebih dahulu sebelum mengakses kolomnya
+    $sql = "SELECT nama_dokter FROM dokter WHERE nama_dokter='{$_SESSION['username']}'";
+    $result = mysqli_query($conn, $sql);
+    if ($result && $result->num_rows > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $_SESSION['name'] = $row['nama_dokter']; // Simpan nama dalam sesi
+        // Simpan data pengguna dalam cookie atau local storage jika diperlukan
+        setcookie('username', $_SESSION['username'], time() + (86400 * 30), "/"); // Cookie berlaku selama 30 hari
+        setcookie('name', $_SESSION['name'], time() + (86400 * 30), "/");
+        // Jika menggunakan local storage:
+        // echo "<script>localStorage.setItem('username', '{$_SESSION['username']}');</script>";
+        // echo "<script>localStorage.setItem('name', '{$_SESSION['name']}');</script>";
+    }
+    header("Location: dashboard.php");
+    exit();
+}
+
+if (isset($_POST['submit'])) {
+    $username = mysqli_real_escape_string($conn, $_POST['username']);
+    $password = $_POST['password'];
+
+    $sql = "SELECT * FROM dokter WHERE nama_dokter='$username'";
+    $result = mysqli_query($conn, $sql);
+
+    if ($result->num_rows > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $stored_password = $row['alamat']; // Password yang disimpan adalah alamat
+        if ($password === $stored_password) { // Memeriksa password
+            // Set session jika login berhasil
+            $_SESSION['username'] = $row['nama_dokter'];
+            $_SESSION['loggedin'] = true; // Set status login ke true
+            $_SESSION['name'] = $row['nama_dokter']; // Set nama sesuai nama dokter
+
+            // Simpan data pengguna dalam cookie atau local storage jika diperlukan
+            setcookie('username', $_SESSION['username'], time() + (86400 * 30), "/"); // Cookie berlaku selama 30 hari
+            setcookie('name', $_SESSION['name'], time() + (86400 * 30), "/");
+            // Jika menggunakan local storage:
+            // echo "<script>localStorage.setItem('username', '{$_SESSION['username']}');</script>";
+            // echo "<script>localStorage.setItem('name', '{$_SESSION['name']}');</script>";
+
+            // Alihkan ke dashboard
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            // Tampilkan SweetAlert jika login gagal karena password salah
+            echo "<script>
+                    window.onload = function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Password Anda salah.'
+                        });
+                    };
+                  </script>";
+        }
+    } else {
+        // Tampilkan SweetAlert jika login gagal karena nama dokter tidak ditemukan
+        echo "<script>
+                window.onload = function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Anda bukan Dokter.'
+                    });
+                };
+              </script>";
+    }
+}
+?>
 
 
                   <form class="row g-3 needs-validation" method="post" action="" >

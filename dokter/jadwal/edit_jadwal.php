@@ -2,7 +2,7 @@
 session_start();
 
 // Pastikan ini adalah baris pertama sebelum output apapun
-include_once('koneksi.php');
+require('../../koneksi.php');
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['loggedin'])) {
@@ -40,32 +40,10 @@ if (!isset($_SESSION['loggedin'])) {
     <a class="navbar-brand brand-logo mr-5" href="index.html"><img src="../../images/logo-1.png" class="mr-2" alt="logo"/>Permata</a>
     <a class="navbar-brand brand-logo-mini" href="index.html"><img src="../../images/logo-1.png" alt="logo"/></a>
     </div>
-    <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+    <div class="navbar-menu-wrapper d-flex align-items-center justify-content-start">
     <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
         <span class="icon-menu"></span>
     </button>
-    <ul class="navbar-nav navbar-nav-right">
-        <li class="nav-item nav-profile dropdown">
-        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
-            <img src="../../images/faces/face28.jpg" alt="profile"/>
-        </a>
-        <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-            <a class="dropdown-item">
-            <i class="ti-settings text-primary"></i>
-            Settings
-            </a>
-            <a class="dropdown-item">
-            <i class="ti-power-off text-primary"></i>
-            Logout
-            </a>
-        </div>
-        </li>
-        <li class="nav-item nav-settings d-none d-lg-flex">
-        <a class="nav-link" href="#">
-            <i class="icon-ellipsis"></i>
-        </a>
-        </li>
-    </ul>
     <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
         <span class="icon-menu"></span>
     </button>
@@ -74,44 +52,44 @@ if (!isset($_SESSION['loggedin'])) {
 
 <div class="container-fluid page-body-wrapper">
     <nav class="sidebar sidebar-offcanvas" id="sidebar">
-    <ul class="nav">
-        <li class="nav-item">
-            <a class="nav-link" href="?page=dashboard">
-                <i class="icon-grid menu-icon"></i>
-                <span class="menu-title">Dashboard</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="?page=pages/dokter/jadwal_periksa">
-                <i class="icon-layout menu-icon"></i>
-                <span class="menu-title">Jadwal Periksa</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="?page=pages/admin/pasien">
-                <i class="icon-layout menu-icon"></i>
-                <span class="menu-title">Pasien</span>
-            </a>
-        </li>
-        <li class="nav-item">
-        <a class="nav-link" href="?page=pages/admin/poli">
-                <i class="icon-layout menu-icon"></i>
-                <span class="menu-title">Poli</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="?page=pages/admin/obat">
-                <i class="icon-layout menu-icon"></i>
-                <span class="menu-title">Obat</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="?page=pages/documentation/documentation">
-                <i class="icon-paper menu-icon"></i>
-                <span class="menu-title">Documentation</span>
-            </a>
-        </li>
-    </ul>
+        <ul class="nav">
+            <li class="nav-item">
+                <a class="nav-link" href="../dashboard.php">
+                    <i class="fas fa-tachometer-alt menu-icon"></i>
+                    <span class="menu-title">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../dashboard.php?page=jadwal/jadwal_periksa">
+                    <i class="fas fa-calendar-alt menu-icon"></i>
+                    <span class="menu-title">Jadwal Periksa</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../dashboard.php?page=periksa/periksa_pasien">
+                    <i class="fas fa-user-md menu-icon"></i>
+                    <span class="menu-title">Periksa Pasien</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../riwayat/riwayat_pasien.php">
+                    <i class="fas fa-history menu-icon"></i>
+                    <span class="menu-title">Riwayat Pasien</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../dashboard.php?page=profile/profile">
+                    <i class="fas fa-user menu-icon"></i>
+                    <span class="menu-title">Profile</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="logout.php">
+                    <i class="fas fa-sign-out-alt menu-icon"></i>
+                    <span class="menu-title">Logout</span>
+                </a>
+            </li>
+        </ul>
     </nav>
 
     <div class="main-panel">
@@ -141,7 +119,7 @@ if (!isset($_SESSION['loggedin'])) {
                                                 showConfirmButton: true
                                             }).then((result) => {
                                                 if (result.isConfirmed) {
-                                                    window.location.href = 'dashboard.php?page=jadwal/jadwal_periksa';
+                                                    window.location.href = '../dashboard.php?page=jadwal/jadwal_periksa';
                                                 }
                                             });
                                         </script>";
@@ -174,7 +152,7 @@ if (!isset($_SESSION['loggedin'])) {
                                                     showConfirmButton: true
                                                 }).then((result) => {
                                                     if (result.isConfirmed) {
-                                                        window.location.href = 'dashboard.php?page=jadwal/jadwal_periksa';
+                                                        window.location.href = '../dashboard.php?page=jadwal/jadwal_periksa';
                                                     }
                                                 });
                                             </script>";
@@ -202,7 +180,7 @@ if (!isset($_SESSION['loggedin'])) {
                                                     showConfirmButton: true
                                                 }).then((result) => {
                                                     if (result.isConfirmed) {
-                                                        window.location.href = 'dashboard.php?page=jadwal/jadwal_periksa';
+                                                        window.location.href = '../dashboard.php?page=jadwal/jadwal_periksa';
                                                     }
                                                 });
                                             </script>";
@@ -230,33 +208,33 @@ if (!isset($_SESSION['loggedin'])) {
                             }
 
                             // delete data
-                            if (isset($_GET['id_hapus'])) {
-                                $id_jadwal = mysqli_real_escape_string($conn, $_GET['id_hapus']);
-                                $query = "DELETE FROM jadwal_periksa WHERE id='$id_jadwal'";
-                                if (mysqli_query($conn, $query)) {
-                                    echo "<script>
-                                            Swal.fire({
-                                                icon: 'success',
-                                                title: 'Berhasil',
-                                                text: 'Berhasil menghapus data jadwal_periksa',
-                                                showConfirmButton: true
-                                            }).then((result) => {
-                                                if (result.isConfirmed) {
-                                                    window.location.href = 'dashboard.php?page=jadwal/jadwal_periksa';
-                                                }
-                                            });
-                                        </script>";
-                                } else {
-                                    echo "<script>
-                                            Swal.fire({
-                                                icon: 'error',
-                                                title: 'Gagal',
-                                                text: 'Gagal menghapus data jadwal_periksa',
-                                                showConfirmButton: true
-                                            });
-                                        </script>";
-                                }
-                            }
+                            // if (isset($_GET['id_hapus'])) {
+                            //     $id_jadwal = mysqli_real_escape_string($conn, $_GET['id_hapus']);
+                            //     $query = "DELETE FROM jadwal_periksa WHERE id='$id_jadwal'";
+                            //     if (mysqli_query($conn, $query)) {
+                            //         echo "<script>
+                            //                 Swal.fire({
+                            //                     icon: 'success',
+                            //                     title: 'Berhasil',
+                            //                     text: 'Berhasil menghapus data jadwal_periksa',
+                            //                     showConfirmButton: true
+                            //                 }).then((result) => {
+                            //                     if (result.isConfirmed) {
+                            //                         window.location.href = 'dashboard.php?page=jadwal/jadwal_periksa';
+                            //                     }
+                            //                 });
+                            //             </script>";
+                            //     } else {
+                            //         echo "<script>
+                            //                 Swal.fire({
+                            //                     icon: 'error',
+                            //                     title: 'Gagal',
+                            //                     text: 'Gagal menghapus data jadwal_periksa',
+                            //                     showConfirmButton: true
+                            //                 });
+                            //             </script>";
+                            //     }
+                            // }
 
                             // Fetch data from database based on ID
                             if (isset($_GET['action']) && $_GET['action'] == 'fetch' && isset($_GET['id_jadwal'])) {
@@ -363,22 +341,13 @@ if (!isset($_SESSION['loggedin'])) {
                                     <div class="form-group">
                                         <label for="nama_dokter">Nama Dokter</label>
                                         <!-- Isi nilai default dengan data dari database -->
-                                        <select class="form-control" id="nama_dokter" name="id_dokter" required>
-                                            <option value="">Pilih Dokter</option>
-                                            <!-- Sisipkan logika PHP untuk menandai opsi yang dipilih -->
-                                            <?php
-                                            $sql = "SELECT * FROM dokter";
-                                            $result = $conn->query($sql);
-                                            if ($result->num_rows > 0) {
-                                                while($row = $result->fetch_assoc()) {
-                                                    $selected = ($row["id_dokter"] == $data["id_dokter"]) ? "selected" : "";
-                                                    echo "<option value='" . $row["id_dokter"] . "' $selected>" . $row["nama_dokter"] . "</option>";
-                                                }
-                                            } else {
-                                                echo "<option value=''>Tidak ada dokter</option>";
-                                            }
-                                            ?>
-                                        </select>
+                                        <?php
+                                        $sql = "SELECT * FROM dokter WHERE id_dokter = " . $data["id_dokter"];
+                                        $result = $conn->query($sql);
+                                        $dokter = $result->fetch_assoc();
+                                        ?>
+                                        <input type="text" class="form-control" id="nama_dokter" value="<?php echo $dokter['nama_dokter']; ?>" readonly>
+                                        <input type="hidden" name="id_dokter" value="<?php echo $data['id_dokter']; ?>">
                                     </div>
 
                                     <!-- Sisipkan logika PHP untuk menandai hari yang dipilih -->

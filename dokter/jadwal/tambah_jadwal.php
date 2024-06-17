@@ -41,7 +41,7 @@
                 $jam_selesai = mysqli_real_escape_string($conn, $_POST['jam_selesai']);
 
                 // Cek apakah hari sudah digunakan untuk dokter yang sama
-                $cek_query = "SELECT hari FROM jadwal_periksa WHERE id_dokter='$id_dokter' AND hari='$hari'";
+                $cek_query = "SELECT hari FROM jadwal_periksa WHERE hari='$hari'";
                 $result = mysqli_query($conn, $cek_query);
 
                 if (mysqli_num_rows($result) > 0) {

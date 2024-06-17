@@ -5,7 +5,7 @@ session_start(); // Pastikan ini adalah baris pertama sebelum output apapun
 require('../../koneksi.php');
 
 // Cek apakah user sudah login dan rolenya adalah Dokter
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
+if (!isset($_SESSION['loggedin']) ) {
     header('Location: ../');
     exit();
 }
@@ -77,33 +77,33 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
 
     <div class="container-fluid page-body-wrapper">
     <nav class="sidebar sidebar-offcanvas" id="sidebar">
-        <ul class="nav">
+    <ul class="nav">
             <li class="nav-item">
-                <a class="nav-link" href="?page=dashboard">
+                <a class="nav-link" href="../dashboard.php">
                     <i class="fas fa-tachometer-alt menu-icon"></i>
                     <span class="menu-title">Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=jadwal/jadwal_periksa">
+                <a class="nav-link" href="../dashboard.php?page=jadwal/jadwal_periksa">
                     <i class="fas fa-calendar-alt menu-icon"></i>
                     <span class="menu-title">Jadwal Periksa</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=periksa/periksa_pasien">
+                <a class="nav-link" href="../dashboard.php?page=periksa/periksa_pasien">
                     <i class="fas fa-user-md menu-icon"></i>
                     <span class="menu-title">Periksa Pasien</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=riwayat/riwayat_pasien">
+                <a class="nav-link" href="../riwayat/riwayat_pasien.php">
                     <i class="fas fa-history menu-icon"></i>
                     <span class="menu-title">Riwayat Pasien</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=profile/profile_dokter">
+                <a class="nav-link" href="../dashboard.php?page=profile/profile">
                     <i class="fas fa-user menu-icon"></i>
                     <span class="menu-title">Profile</span>
                 </a>

@@ -59,25 +59,57 @@ $is_logged_in = isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
             <li class="nav-item">
               <a class="nav-link" href="#kontak">Kontak</a>
             </li>
-            <?php if(isset($_SESSION['role'])): ?>
-              <?php if($_SESSION['role'] === 'Admin'): ?>
-                  <li class="nav-item">
-                      <a class="btn btn-primary ml-lg-2" href="admin/dashboard.php">Admin</a>
-                  </li>
-              <?php elseif($_SESSION['role'] === 'Dokter'): ?>
-                  <li class="nav-item">
-                      <a class="btn btn-primary ml-lg-2" href="dokter/dashboard.php">Dokter</a>
-                  </li>
-              <?php else: ?>
-                  <li class="nav-item">
-                      <a class="btn btn-primary ml-lg-2" href="pasien/index.php">Buat Janji</a>
-                  </li>
-              <?php endif; ?>
-          <?php else: ?>
-              <li class="nav-item">
-                  <a class="btn btn-primary ml-lg-2" href="pasien/index.php">Buat Janji</a>
-              </li>
-          <?php endif; ?>
+            <?php if(isset($_SESSION['name'])): ?>
+    <?php
+    include_once('koneksi.php');
+
+    // Cek apakah nama yang ada di session atau cookie cocok dengan data di tabel dokter
+    $role = '';
+    if (isset($_COOKIE['name'])) {
+        $nama_dokter_cookie = mysqli_real_escape_string($conn, $_COOKIE['name']);
+        
+        // Query untuk memeriksa apakah nama dokter dari cookie ada di tabel dokter
+        $sql_dokter = "SELECT * FROM dokter WHERE nama_dokter='$nama_dokter_cookie'";
+        $result_dokter = mysqli_query($conn, $sql_dokter);
+        
+        if ($result_dokter && mysqli_num_rows($result_dokter) > 0) {
+            $role = 'Dokter';
+        } else {
+            // Jika nama dokter tidak ada di tabel dokter, cek di tabel akun
+            $sql_akun = "SELECT * FROM akun WHERE name='$nama_dokter_cookie'";
+            $result_akun = mysqli_query($conn, $sql_akun);
+            
+            if ($result_akun && mysqli_num_rows($result_akun) > 0) {
+                $role = 'Admin';
+            } else {
+                $role = 'Pasien';
+            }
+        }
+    } else {
+        $role = 'Pasien';
+    }
+    ?>
+
+    <?php if($role === 'Admin'): ?>
+        <li class="nav-item">
+            <a class="btn btn-primary ml-lg-2" href="admin/dashboard.php">Admin</a>
+        </li>
+    <?php elseif($role === 'Dokter'): ?>
+        <li class="nav-item">
+            <a class="btn btn-primary ml-lg-2" href="dokter/dashboard.php">Dokter</a>
+        </li>
+    <?php else: ?>
+        <li class="nav-item">
+            <a class="btn btn-primary ml-lg-2" href="pasien/index.php">Buat Janji</a>
+        </li>
+    <?php endif; ?>
+
+<?php else: ?>
+    <li class="nav-item">
+        <a class="btn btn-primary ml-lg-2" href="pasien/index.php">Buat Janji</a>
+    </li>
+<?php endif; ?>
+
 
           </ul>
         </div>

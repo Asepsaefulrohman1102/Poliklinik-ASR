@@ -6,46 +6,62 @@ if (!$conn) {
     die("Koneksi gagal: " . mysqli_connect_error());
 }
 
-// Cek apakah user sudah login dan
+// Cek apakah user sudah login
 if (!isset($_SESSION['loggedin']) ) {
     header('Location: login.php');
     exit();
 }
 
-// Fungsi untuk mendapatkan nomor antrian baru
-function getNewQueueNumber($conn) {
-    $query_last_queue_number = "SELECT MAX(no_antrian) as no_antrian_terakhir FROM daftar_poli";
-    $result_last_queue_number = mysqli_query($conn, $query_last_queue_number);
-    if (!$result_last_queue_number) {
-        die("Kueri gagal: " . mysqli_error($conn));
+// Fungsi untuk mendapatkan nomor antrian baru berdasarkan jadwal poli yang dipilih
+function getNewQueueNumber($conn, $id_jadwal) {
+    // Gunakan transaksi untuk memastikan keamanan
+    mysqli_begin_transaction($conn);
+    
+    try {
+        // Ambil nomor antrian terakhir untuk jadwal poli tertentu
+        $query_last_queue_number = "SELECT MAX(no_antrian) as no_antrian_terakhir FROM daftar_poli WHERE id_jadwal = $id_jadwal FOR UPDATE";
+        $result_last_queue_number = mysqli_query($conn, $query_last_queue_number);
+        
+        if (!$result_last_queue_number) {
+            throw new Exception("Kueri gagal: " . mysqli_error($conn));
+        }
+        
+        $row = mysqli_fetch_assoc($result_last_queue_number);
+        $last_queue_number = $row['no_antrian_terakhir'];
+        
+        // Jika tidak ada nomor antrian sebelumnya, nomor antrian baru dimulai dari 1
+        $new_queue_number = ($last_queue_number !== null) ? $last_queue_number + 1 : 1;
+
+        // Lakukan penyisipan data baru
+        $query_insert_data = "INSERT INTO daftar_poli (id_pasien, id_jadwal, keluhan, no_antrian) 
+                              VALUES (?, ?, ?, ?)";
+        $stmt = mysqli_prepare($conn, $query_insert_data);
+        mysqli_stmt_bind_param($stmt, "iisi", $_SESSION['id'], $id_jadwal, $_POST['keluhan'], $new_queue_number);
+        
+        if (!mysqli_stmt_execute($stmt)) {
+            throw new Exception("Error: " . mysqli_error($conn));
+        }
+        
+        // Commit transaksi jika semua operasi berhasil
+        mysqli_commit($conn);
+
+        return $new_queue_number;
+    } catch (Exception $e) {
+        // Rollback transaksi jika ada kesalahan
+        mysqli_rollback($conn);
+        die("Error: " . $e->getMessage());
     }
-    $row = mysqli_fetch_assoc($result_last_queue_number);
-    $last_queue_number = $row['no_antrian_terakhir'];
-    $new_queue_number = ($last_queue_number !== null) ? $last_queue_number + 1 : 1;
-    return $new_queue_number;
 }
 
-$new_queue_number = getNewQueueNumber($conn);
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id_pasien = $_SESSION['id'];
     $id_jadwal = $_POST['jadwal_periksa'];
-    $keluhan = $_POST['keluhan'];
-    $no_antrian = $new_queue_number;
+    $new_queue_number = getNewQueueNumber($conn, $id_jadwal);
 
-    $query_insert_data = "INSERT INTO daftar_poli (id_pasien, id_jadwal, keluhan, no_antrian) 
-                          VALUES ('$id_pasien', '$id_jadwal', '$keluhan', '$no_antrian')";
-
-    $result_insert_data = mysqli_query($conn, $query_insert_data);
-
-    if ($result_insert_data) {
-        // Hancurkan sesi setelah pendaftaran berhasil
-        session_destroy();
-        echo "<script>
+    echo "<script>
         document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
                 title: 'Berhasil!',
-                text: 'Pendaftaran berhasil.',
+                text: 'Pendaftaran berhasil dengan nomor antrian $new_queue_number.',
                 icon: 'success',
                 confirmButtonText: 'OK'
             }).then((result) => {
@@ -55,9 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             });
         });
         </script>";
-    } else {
-        echo "Error: " . mysqli_error($conn);
-    }
 }
 
 mysqli_close($conn);
@@ -73,7 +86,6 @@ mysqli_close($conn);
   <link href="../assets/assets_login/img/favicon.png" rel="icon">
   <link href="../assets/assets_login/img/apple-touch-icon.png" rel="apple-touch-icon">
   <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
   <link href="../assets/assets_login/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="../assets/assets_login/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="../assets/assets_login/css/style.css" rel="stylesheet">
@@ -135,10 +147,7 @@ mysqli_close($conn);
                                         <label for="keluhan" class="form-label">Keluhan</label>
                                         <textarea class="form-control" id="keluhan" name="keluhan" required></textarea>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="no_antrian" class="form-label">No Antrian</label>
-                                        <input type="text" class="form-control" id="no_antrian" name="no_antrian" value="<?php echo $new_queue_number; ?>" readonly>
-                                    </div>
+                                    
                                     <div class="col-12">
                                         <button class="btn btn-primary w-100" type="submit">Daftar</button>
                                     </div>
@@ -190,3 +199,4 @@ $(document).ready(function() {
 </script>
 </body>
 </html>
+

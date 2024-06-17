@@ -5,7 +5,7 @@ session_start(); // Pastikan ini adalah baris pertama sebelum output apapun
 require('../../koneksi.php');
 
 // Cek apakah user sudah login dan role-nya adalah Dokter
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
+if (!isset($_SESSION['loggedin']) ) {
     header('Location: ../');
     exit();
 }
@@ -93,33 +93,33 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
 
     <div class="container-fluid page-body-wrapper">
     <nav class="sidebar sidebar-offcanvas" id="sidebar">
-        <ul class="nav">
+    <ul class="nav">
             <li class="nav-item">
-                <a class="nav-link" href="?page=dashboard">
+                <a class="nav-link" href="../dashboard.php">
                     <i class="fas fa-tachometer-alt menu-icon"></i>
                     <span class="menu-title">Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=jadwal/jadwal_periksa">
+                <a class="nav-link" href="../dashboard.php?page=jadwal/jadwal_periksa">
                     <i class="fas fa-calendar-alt menu-icon"></i>
                     <span class="menu-title">Jadwal Periksa</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=periksa/periksa_pasien">
+                <a class="nav-link" href="../dashboard.php?page=periksa/periksa_pasien">
                     <i class="fas fa-user-md menu-icon"></i>
                     <span class="menu-title">Periksa Pasien</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=riwayat/riwayat_pasien">
+                <a class="nav-link" href="../riwayat/riwayat_pasien.php">
                     <i class="fas fa-history menu-icon"></i>
                     <span class="menu-title">Riwayat Pasien</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=profile/profile_dokter">
+                <a class="nav-link" href="../dashboard.php?page=profile/profile">
                     <i class="fas fa-user menu-icon"></i>
                     <span class="menu-title">Profile</span>
                 </a>
@@ -144,108 +144,109 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'Dokter') {
                 <h4 class="card-title">Periksa Pasien</h4>
 
                 <?php
-                // Koneksi ke database
-                $conn = mysqli_connect("localhost", "root", "", "poliklinik");
-                if (!$conn) {
-                    die("Koneksi gagal: " . mysqli_connect_error());
+// Koneksi ke database
+$conn = mysqli_connect("localhost", "root", "", "poliklinik");
+if (!$conn) {
+    die("Koneksi gagal: " . mysqli_connect_error());
+}
+
+$id_poli = $_GET['id_poli'];
+$nama_pasien = $_GET['nama_pasien'];
+$keluhan = $_GET['keluhan'];
+$no_antrian = $_GET['no_antrian'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Ambil data dari form
+    $id_poli = $_POST['id_poli'];
+    $tgl_periksa = $_POST['tanggal_periksa'];
+    $catatan = $_POST['catatan'];
+    $obat_ids = $_POST['obat'];
+    
+    // Biaya jasa dokter
+    $biaya_jasa_dokter = 150000;
+
+    // Hitung biaya berdasarkan obat yang dipilih
+    $biaya_obat = 0;
+    foreach ($obat_ids as $id_obat) {
+        $query = "SELECT harga FROM obat WHERE id_obat = '$id_obat'";
+        $result = mysqli_query($conn, $query);
+        if ($row = mysqli_fetch_assoc($result)) {
+            $biaya_obat += $row['harga'];
+        }
+    }
+
+    // Total biaya periksa
+    $total_biaya = $biaya_jasa_dokter + $biaya_obat;
+
+    // Masukkan data ke tabel periksa
+    $query = "INSERT INTO periksa (id_daftar_poli, tgl_periksa, catatan, biaya_periksa) VALUES ('$id_poli', '$tgl_periksa', '$catatan', '$total_biaya')";
+    if (mysqli_query($conn, $query)) {
+        // Ambil id_periksa yang baru saja dimasukkan
+        $id_periksa_baru = mysqli_insert_id($conn);
+
+        // Masukkan data ke tabel detail_periksa untuk setiap obat yang dipilih
+        foreach ($obat_ids as $id_obat) {
+            $query_detail = "INSERT INTO detail_periksa (id_periksa, id_obat) VALUES ('$id_periksa_baru', '$id_obat')";
+            mysqli_query($conn, $query_detail);
+        }
+
+        echo "<script>
+            Swal.fire({
+                title: 'Success!',
+                text: 'Data berhasil disimpan!',
+                icon: 'success'
+            }).then(function() {
+                window.location = '../dashboard.php?page=periksa/periksa_pasien';
+            });
+        </script>";
+    } else {
+        echo "<script>
+            Swal.fire({
+                title: 'Error!',
+                text: 'Terjadi kesalahan saat menyimpan data.',
+                icon: 'error'
+            });
+        </script>";
+    }
+}
+
+?>
+
+<div class="mt-3" id="periksa-pasien-form">
+    <form name="myForm" action="" method="POST" onsubmit="return validate()">
+        <input type="hidden" name="id_poli" value="<?php echo $id_poli; ?>">
+
+        <div class="form-group">
+            <label for="nama_pasien">Nama Pasien</label>
+            <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" value="<?php echo $nama_pasien; ?>" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="tanggal_periksa">Tanggal Periksa</label>
+            <input type="datetime-local" class="form-control" id="tanggal_periksa" name="tanggal_periksa" required>
+        </div>
+
+        <div class="form-group">
+            <label for="catatan_periksa">Catatan Periksa</label>
+            <textarea class="form-control" id="catatan" name="catatan" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="obat">Obat</label>
+            <select class="form-control js-example-basic-multiple" multiple="multiple" name="obat[]" id="obat" required>
+                <?php
+                $sql = "SELECT * FROM obat";
+                $result = mysqli_query($conn, $sql);
+                while ($data = mysqli_fetch_assoc($result)) {
+                    echo "<option class='form-control' value='" . $data['id_obat'] . "'>" . $data['nama_obat'] . ' - ' . $data['kemasan'] . ' - Rp.' . $data['harga'] . "</option>"; 
                 }
-
-                $id_poli = $_GET['id_poli'];
-                $nama_pasien = $_GET['nama_pasien'];
-                $keluhan = $_GET['keluhan'];
-                $no_antrian = $_GET['no_antrian'];
-
-                echo "<h5 class='card-title'>Nama Pasien: $nama_pasien</h5>";
-                echo "<h5 class='card-title'>id_poli: $id_poli</h5>";
-
-
-                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                  // Ambil data dari form
-                  $id_poli = $_POST['id_poli'];
-                  $tgl_periksa = $_POST['tanggal_periksa'];
-                  $catatan = $_POST['catatan'];
-                  $obat_ids = $_POST['obat'];
-                  
-                  // Hitung biaya berdasarkan obat yang dipilih
-                  $biaya = 0;
-                  foreach ($obat_ids as $id_obat) {
-                      $query = "SELECT harga FROM obat WHERE id_obat = '$id_obat'";
-                      $result = mysqli_query($conn, $query);
-                      if ($row = mysqli_fetch_assoc($result)) {
-                          $biaya += $row['harga'];
-                      }
-                  }
-              
-                  // Masukkan data ke tabel periksa
-                  $query = "INSERT INTO periksa (id_daftar_poli, tgl_periksa, catatan, biaya_periksa) VALUES ('$id_poli', '$tgl_periksa', '$catatan', '$biaya')";
-                  if (mysqli_query($conn, $query)) {
-                      // Ambil id_periksa yang baru saja dimasukkan
-                      $id_periksa_baru = mysqli_insert_id($conn);
-
-                      // Masukkan data ke tabel detail_periksa untuk setiap obat yang dipilih
-                      foreach ($obat_ids as $id_obat) {
-                          $query_detail = "INSERT INTO detail_periksa (id_periksa, id_obat) VALUES ('$id_periksa_baru', '$id_obat')";
-                          mysqli_query($conn, $query_detail);
-                      }
-
-                      echo "<script>
-                          Swal.fire({
-                              title: 'Success!',
-                              text: 'Data berhasil disimpan!',
-                              icon: 'success'
-                          }).then(function() {
-                              window.location = '../dashboard.php?page=periksa/periksa_pasien';
-                          });
-                      </script>";
-                  } else {
-                      echo "<script>
-                          Swal.fire({
-                              title: 'Error!',
-                              text: 'Terjadi kesalahan saat menyimpan data.',
-                              icon: 'error'
-                          });
-                      </script>";
-                  }
-              }
-
                 ?>
-
-                <div class="mt-3" id="periksa-pasien-form">
-                    <form name="myForm" action="" method="POST" onsubmit="return validate()">
-                        <input type="hidden" name="id_poli" value="<?php echo $id_poli; ?>">
-
-                        <div class="form-group">
-                            <label for="nama_pasien">Nama Pasien</label>
-                            <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" value="<?php echo $nama_pasien; ?>" readonly>
-                        </div>
-
-                        <div class="form-group">
-                          <!-- tanggal periksa datetime -->
-                            <label for="tanggal_periksa">Tanggal Periksa</label>
-                            <input type="datetime-local" class="form-control" id="tanggal_periksa" name="tanggal_periksa" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="catatan_periksa">Catatan Periksa</label>
-                            <textarea class="form-control" id="catatan" name="catatan" rows="3" required></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="obat">Obat</label>
-                            <select class="form-control js-example-basic-multiple" multiple="multiple" name="obat[]" id="obat" required>
-                                <?php
-                                $sql = "SELECT * FROM obat";
-                                $result = mysqli_query($conn, $sql);
-                                while ($data = mysqli_fetch_assoc($result)) {
-                                    echo "<option class='form-control' value='" . $data['id_obat'] . "'>" . $data['nama_obat'] . ' - ' . $data['kemasan']  . ' - Rp.' . $data['harga'] ."</option>"; 
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </form>
-                </div>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
               </div>
             </div>
           </div>

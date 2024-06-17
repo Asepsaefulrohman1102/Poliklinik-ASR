@@ -107,7 +107,7 @@ if (isset($_GET['id_hapus'])) {
                                             <td> ${item.jam_mulai} </td>
                                             <td> ${item.jam_selesai} </td>
                                             <td>
-                                                <a href="edit_jadwal.php?id=${item.id}" class="btn btn-warning">Edit</a>
+                                                <a href="jadwal/edit_jadwal.php?id=${item.id}" class="btn btn-warning">Edit</a>
                                                 
                                             </td>
                                         </tr>
